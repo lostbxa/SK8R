@@ -45,6 +45,7 @@ jobs:
         run: |
           test -f quartz/public/index.html
           test -s quartz/public/index.html
+          test ! -f quartz/public/.html
 
       - name: Upload Pages Artifact
         uses: actions/upload-pages-artifact@v3

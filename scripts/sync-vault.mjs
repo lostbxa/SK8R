@@ -100,7 +100,7 @@ async function ensureLowercaseRootIndex(contentRoot) {
   }
 }
 
-async function ensureHomepagePermalink(contentRoot) {
+async function ensureNoRootPermalink(contentRoot) {
   const indexPath = path.join(contentRoot, "index.md")
   if (!(await pathExists(indexPath))) return
 
@@ -111,20 +111,22 @@ async function ensureHomepagePermalink(contentRoot) {
     const end = normalized.indexOf("\n---\n", 4)
     if (end !== -1) {
       const frontmatter = normalized.slice(4, end)
-      if (!/^permalink:\s*\/\s*$/m.test(frontmatter)) {
-        const updatedFrontmatter =
-          frontmatter.trimEnd() + "\npermalink: /\n"
+      if (/^permalink:\s*\/\s*$/m.test(frontmatter)) {
+        const updatedFrontmatter = frontmatter
+          .split("\n")
+          .filter((line) => !/^permalink:\s*\/\s*$/.test(line))
+          .join("\n")
+          .trimEnd()
         const rest = normalized.slice(end + 5)
-        await fs.writeFile(indexPath, `---\n${updatedFrontmatter}---\n${rest}`, "utf8")
-        console.log("[info] Added permalink: / to content/index.md frontmatter.")
+        const frontmatterBlock = updatedFrontmatter
+          ? `---\n${updatedFrontmatter}\n---\n`
+          : ""
+        await fs.writeFile(indexPath, `${frontmatterBlock}${rest}`, "utf8")
+        console.log("[info] Removed permalink: / from content/index.md frontmatter.")
       }
       return
     }
   }
-
-  const withFrontmatter = `---\npermalink: /\n---\n${normalized}`
-  await fs.writeFile(indexPath, withFrontmatter, "utf8")
-  console.log("[info] Added frontmatter with permalink: / to content/index.md.")
 }
 
 function compileIgnores(patterns) {
@@ -321,7 +323,7 @@ async function sync() {
     )
   } else if (allowExistingContent && (await pathExists(quartzContentPath))) {
     await ensureLowercaseRootIndex(quartzContentPath)
-    await ensureHomepagePermalink(quartzContentPath)
+    await ensureNoRootPermalink(quartzContentPath)
     logWarn(
       "VAULT_PATH is not set. Using existing ./quartz/content as-is (no sync performed).",
     )
@@ -401,7 +403,7 @@ async function sync() {
   }
 
   await ensureLowercaseRootIndex(quartzContentPath)
-  await ensureHomepagePermalink(quartzContentPath)
+  await ensureNoRootPermalink(quartzContentPath)
 
   console.log(
     `[info] Synced ${selectedFiles.length} files from "${sourceRoot}" to "${quartzContentPath}".`,
