@@ -76,6 +76,56 @@ async function pathExists(filePath) {
   }
 }
 
+async function ensureLowercaseRootIndex(contentRoot) {
+  const entries = await fs.readdir(contentRoot, { withFileTypes: true })
+  const fileNames = entries.filter((e) => e.isFile()).map((e) => e.name)
+  const hasLowerIndex = fileNames.includes("index.md")
+  const hasUpperIndex = fileNames.includes("Index.md")
+
+  if (!hasLowerIndex && hasUpperIndex) {
+    const rootIndexUpper = path.join(contentRoot, "Index.md")
+    const rootIndexTemp = path.join(contentRoot, "__tmp_quartz_index__.md")
+    const rootIndexLower = path.join(contentRoot, "index.md")
+    // On case-insensitive filesystems, force case-only rename via temp hop.
+    await fs.rename(rootIndexUpper, rootIndexTemp)
+    await fs.rename(rootIndexTemp, rootIndexLower)
+    console.log(
+      "[info] Renamed content/Index.md to content/index.md for case-sensitive hosting.",
+    )
+  } else if (!hasLowerIndex && !hasUpperIndex) {
+    logWarn(
+      "No root content/index.md found. GitHub Pages may show RSS or 404 at site root.",
+    )
+  }
+}
+
+async function ensureHomepagePermalink(contentRoot) {
+  const indexPath = path.join(contentRoot, "index.md")
+  if (!(await pathExists(indexPath))) return
+
+  const source = await fs.readFile(indexPath, "utf8")
+  const normalized = source.replace(/\r\n/g, "\n")
+
+  if (normalized.startsWith("---\n")) {
+    const end = normalized.indexOf("\n---\n", 4)
+    if (end !== -1) {
+      const frontmatter = normalized.slice(4, end)
+      if (!/^permalink:\s*\/\s*$/m.test(frontmatter)) {
+        const updatedFrontmatter =
+          frontmatter.trimEnd() + "\npermalink: /\n"
+        const rest = normalized.slice(end + 5)
+        await fs.writeFile(indexPath, `---\n${updatedFrontmatter}---\n${rest}`, "utf8")
+        console.log("[info] Added permalink: / to content/index.md frontmatter.")
+      }
+      return
+    }
+  }
+
+  const withFrontmatter = `---\npermalink: /\n---\n${normalized}`
+  await fs.writeFile(indexPath, withFrontmatter, "utf8")
+  console.log("[info] Added frontmatter with permalink: / to content/index.md.")
+}
+
 function compileIgnores(patterns) {
   return (patterns ?? []).map(
     (pattern) =>
@@ -262,6 +312,8 @@ async function sync() {
 
   if (!vaultPath) {
     if (allowExistingContent && (await pathExists(quartzContentPath))) {
+      await ensureLowercaseRootIndex(quartzContentPath)
+      await ensureHomepagePermalink(quartzContentPath)
       logWarn(
         "VAULT_PATH is not set. Using existing ./quartz/content as-is (no sync performed).",
       )
@@ -339,6 +391,9 @@ async function sync() {
     }
   }
 
+  await ensureLowercaseRootIndex(quartzContentPath)
+  await ensureHomepagePermalink(quartzContentPath)
+
   console.log(
     `[info] Synced ${selectedFiles.length} files from "${sourceRoot}" to "${quartzContentPath}".`,
   )
@@ -347,4 +402,3 @@ async function sync() {
 sync().catch((error) => {
   fail(error instanceof Error ? error.message : String(error))
 })
-
