@@ -10,6 +10,7 @@ const repoRoot = path.resolve(__dirname, "..")
 
 const configPath = path.join(repoRoot, "wrapper.config.yaml")
 const quartzContentPath = path.join(repoRoot, "quartz", "content")
+const contentSnapshotPath = path.join(repoRoot, "content-snapshot")
 const allowExistingContent = process.argv.includes("--allow-existing-content")
 
 const ASSET_EXTENSIONS = new Set([
@@ -310,19 +311,27 @@ async function sync() {
   const envSubpath = process.env.VAULT_PUBLISH_SUBPATH
   const publishSubpath = envSubpath !== undefined ? envSubpath : configSubpath
 
-  if (!vaultPath) {
-    if (allowExistingContent && (await pathExists(quartzContentPath))) {
-      await ensureLowercaseRootIndex(quartzContentPath)
-      await ensureHomepagePermalink(quartzContentPath)
-      logWarn(
-        "VAULT_PATH is not set. Using existing ./quartz/content as-is (no sync performed).",
-      )
-      return
-    }
-    fail("VAULT_PATH environment variable is required for sync.")
+  let sourceRoot = ""
+  if (vaultPath) {
+    sourceRoot = path.resolve(vaultPath, publishSubpath)
+  } else if (await pathExists(contentSnapshotPath)) {
+    sourceRoot = contentSnapshotPath
+    logWarn(
+      "VAULT_PATH is not set. Falling back to committed ./content-snapshot for CI-safe builds.",
+    )
+  } else if (allowExistingContent && (await pathExists(quartzContentPath))) {
+    await ensureLowercaseRootIndex(quartzContentPath)
+    await ensureHomepagePermalink(quartzContentPath)
+    logWarn(
+      "VAULT_PATH is not set. Using existing ./quartz/content as-is (no sync performed).",
+    )
+    return
+  } else {
+    fail(
+      "VAULT_PATH environment variable is required unless ./content-snapshot exists.",
+    )
   }
 
-  const sourceRoot = path.resolve(vaultPath, publishSubpath)
   if (!(await pathExists(sourceRoot))) {
     fail(`Source publish path does not exist: ${sourceRoot}`)
   }

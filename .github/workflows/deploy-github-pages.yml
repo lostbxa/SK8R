@@ -41,6 +41,11 @@ jobs:
           REPO_NAME: ${{ github.event.repository.name }}
         run: npm run build
 
+      - name: Verify Pages Entrypoint
+        run: |
+          test -f quartz/public/index.html
+          test -s quartz/public/index.html
+
       - name: Upload Pages Artifact
         uses: actions/upload-pages-artifact@v3
         with:

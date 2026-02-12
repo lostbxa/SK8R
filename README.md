@@ -19,7 +19,8 @@ This project uses Quartz as a git submodule (`./quartz`) rather than vendoring Q
    - Normalizes wikilinks/markdown links
    - Rewrites attachment references when possible
 4. Quartz builds static output from `./quartz/content` into `./quartz/public`.
-5. Deploy `./quartz/public` to GitHub Pages or Cloudflare Pages.
+5. Build also refreshes `./content-snapshot` (tracked in this repo) for CI-safe deploys.
+6. Deploy `./quartz/public` to GitHub Pages or Cloudflare Pages.
 
 No Obsidian Publish is required.
 
@@ -43,10 +44,12 @@ No Obsidian Publish is required.
 |-- .gitmodules
 |-- package.json
 |-- README.md
+|-- content-snapshot/   # tracked content snapshot used by CI when VAULT_PATH is unavailable
 |-- scripts/
 |   |-- ensure-quartz-ready.mjs
 |   |-- render-quartz-config.mjs
-|   `-- sync-vault.mjs
+|   |-- sync-vault.mjs
+|   `-- update-content-snapshot.mjs
 |-- wrapper.config.yaml
 |-- wrangler.toml
 `-- quartz/            # git submodule (Quartz v4)
@@ -90,9 +93,10 @@ export REPO_NAME="SK8R"
 ## Commands
 
 - `npm run dev`: sync + patch Quartz config + local preview server
-- `npm run build`: sync + patch Quartz config + static build
+- `npm run build`: patch Quartz config + sync + snapshot + static build
 - `npm run refresh-build`: one-command refresh + rebuild
 - `npm run sync`: only refresh content from vault
+- `npm run snapshot:content`: copy `quartz/content` to tracked `content-snapshot`
 
 Required by design:
 
@@ -156,7 +160,7 @@ It:
 
 1. Checks out repo + submodules
 2. Installs dependencies
-3. Runs `npm run build`
+3. Runs `npm run build` (uses local vault if present, else falls back to tracked `content-snapshot`)
 4. Deploys `quartz/public`
 
 ### One-time GitHub setup
@@ -239,5 +243,6 @@ npx wrangler pages deploy quartz/public --project-name <your-cloudflare-pages-pr
 CI runners cannot read your local disk vault path directly. Typical flow:
 
 1. Run `npm run sync` locally.
-2. Commit synced `quartz/content`.
-3. CI builds and deploys that committed snapshot.
+2. Run `npm run snapshot:content` (or just `npm run build`, which does this automatically).
+3. Commit `content-snapshot/` in this wrapper repo.
+4. CI builds and deploys from that committed snapshot when `VAULT_PATH` is unavailable.

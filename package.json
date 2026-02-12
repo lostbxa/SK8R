@@ -10,10 +10,11 @@
   "scripts": {
     "quartz:init": "git submodule update --init --recursive",
     "sync": "node scripts/ensure-wrapper-ready.mjs && node scripts/sync-vault.mjs --allow-existing-content",
+    "snapshot:content": "node scripts/update-content-snapshot.mjs",
     "config:quartz": "node scripts/render-quartz-config.mjs",
     "config:quartz:dev": "node scripts/render-quartz-config.mjs --dev",
     "dev": "node scripts/ensure-wrapper-ready.mjs && node scripts/ensure-quartz-ready.mjs --install && npm run config:quartz:dev && npm run sync && node scripts/run-quartz.mjs build --serve",
-    "build": "node scripts/ensure-wrapper-ready.mjs && node scripts/ensure-quartz-ready.mjs --install && npm run config:quartz && npm run sync && node scripts/run-quartz.mjs build",
+    "build": "node scripts/ensure-wrapper-ready.mjs && node scripts/ensure-quartz-ready.mjs --install && npm run config:quartz && npm run sync && npm run snapshot:content && node scripts/run-quartz.mjs build",
     "refresh-build": "npm run build"
   },
   "dependencies": {
