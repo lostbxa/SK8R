@@ -1,0 +1,15 @@
+node_modules/
+dist/
+.DS_Store
+Thumbs.db
+
+# Quartz build output
+quartz/public/
+
+# Local environment overrides
+.env
+.env.local
+
+# Keep synced content in git by default for CI deploys.
+# Uncomment if you never want to commit synced content.
+# quartz/content/

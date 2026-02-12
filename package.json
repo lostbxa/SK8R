@@ -1,0 +1,23 @@
+{
+  "name": "quartz-wiki-wrapper",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Publish an existing Obsidian vault (or subfolder) as a Quartz static site",
+  "type": "module",
+  "engines": {
+    "node": ">=22.0.0"
+  },
+  "scripts": {
+    "quartz:init": "git submodule update --init --recursive",
+    "sync": "node scripts/ensure-wrapper-ready.mjs && node scripts/sync-vault.mjs --allow-existing-content",
+    "config:quartz": "node scripts/render-quartz-config.mjs",
+    "config:quartz:dev": "node scripts/render-quartz-config.mjs --dev",
+    "dev": "node scripts/ensure-wrapper-ready.mjs && node scripts/ensure-quartz-ready.mjs --install && npm run config:quartz:dev && npm run sync && node scripts/run-quartz.mjs build --serve",
+    "build": "node scripts/ensure-wrapper-ready.mjs && node scripts/ensure-quartz-ready.mjs --install && npm run config:quartz && npm run sync && node scripts/run-quartz.mjs build",
+    "refresh-build": "npm run build"
+  },
+  "dependencies": {
+    "minimatch": "^9.0.5",
+    "yaml": "^2.8.1"
+  }
+}

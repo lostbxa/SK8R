@@ -1,0 +1,32 @@
+# Global wrapper configuration.
+# Environment variables override these where noted in README.
+
+publishSubpath: ""
+
+ignorePatterns:
+  - ".obsidian/**"
+  - "**/.obsidian/**"
+  - ".trash/**"
+  - "**/.trash/**"
+  - ".git/**"
+  - "**/.git/**"
+  - "**/node_modules/**"
+  - "**/.DS_Store"
+  - "**/Thumbs.db"
+  - "private/**"
+  - "**/private/**"
+
+attachmentsFolders:
+  - "attachments"
+
+# Optional regex rewrite rules applied after built-in link normalization.
+linkRewriteRules: []
+# Example:
+# linkRewriteRules:
+#   - match: "\\[\\[(.+?)\\.md(\\|.*?)?\\]\\]"
+#     replace: "[[$1$2]]"
+#     flags: "g"
+
+site:
+  title: "My Obsidian Wiki"
+  description: "Published from an Obsidian vault using Quartz"
