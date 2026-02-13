@@ -28,5 +28,6 @@ linkRewriteRules: []
 #     flags: "g"
 
 site:
-  title: "My Obsidian Wiki"
+  title: "SK8R"
   description: "Published from an Obsidian vault using Quartz"
+  indexTitle: "Overview"

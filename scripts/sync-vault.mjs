@@ -129,6 +129,40 @@ async function ensureNoRootPermalink(contentRoot) {
   }
 }
 
+async function ensureIndexTitle(contentRoot, indexTitle) {
+  const configuredTitle =
+    typeof indexTitle === "string" ? indexTitle.trim() : ""
+  if (!configuredTitle) return
+
+  const indexPath = path.join(contentRoot, "index.md")
+  if (!(await pathExists(indexPath))) return
+
+  const source = await fs.readFile(indexPath, "utf8")
+  const normalized = source.replace(/\r\n/g, "\n")
+  const titleLine = `title: ${JSON.stringify(configuredTitle)}`
+
+  if (normalized.startsWith("---\n")) {
+    const end = normalized.indexOf("\n---\n", 4)
+    if (end !== -1) {
+      const frontmatter = normalized.slice(4, end)
+      const rest = normalized.slice(end + 5)
+      const updatedFrontmatter = /^title:\s*.*$/m.test(frontmatter)
+        ? frontmatter.replace(/^title:\s*.*$/m, titleLine)
+        : `${frontmatter.trimEnd()}${frontmatter.trimEnd() ? "\n" : ""}${titleLine}`
+      await fs.writeFile(
+        indexPath,
+        `---\n${updatedFrontmatter}\n---\n${rest}`,
+        "utf8",
+      )
+      console.log(`[info] Set content/index.md title to "${configuredTitle}".`)
+      return
+    }
+  }
+
+  await fs.writeFile(indexPath, `---\n${titleLine}\n---\n${normalized}`, "utf8")
+  console.log(`[info] Added title "${configuredTitle}" to content/index.md.`)
+}
+
 function compileIgnores(patterns) {
   return (patterns ?? []).map(
     (pattern) =>
@@ -312,6 +346,7 @@ async function sync() {
   const configSubpath = config.publishSubpath ?? ""
   const envSubpath = process.env.VAULT_PUBLISH_SUBPATH
   const publishSubpath = envSubpath !== undefined ? envSubpath : configSubpath
+  const indexTitle = config?.site?.indexTitle
 
   let sourceRoot = ""
   if (vaultPath) {
@@ -324,6 +359,7 @@ async function sync() {
   } else if (allowExistingContent && (await pathExists(quartzContentPath))) {
     await ensureLowercaseRootIndex(quartzContentPath)
     await ensureNoRootPermalink(quartzContentPath)
+    await ensureIndexTitle(quartzContentPath, indexTitle)
     logWarn(
       "VAULT_PATH is not set. Using existing ./quartz/content as-is (no sync performed).",
     )
@@ -404,6 +440,7 @@ async function sync() {
 
   await ensureLowercaseRootIndex(quartzContentPath)
   await ensureNoRootPermalink(quartzContentPath)
+  await ensureIndexTitle(quartzContentPath, indexTitle)
 
   console.log(
     `[info] Synced ${selectedFiles.length} files from "${sourceRoot}" to "${quartzContentPath}".`,

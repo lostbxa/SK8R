@@ -132,6 +132,7 @@ Single config file for:
 - attachment folder names
 - optional regex link rewrite rules
 - site title and description
+- homepage title for `index.md`
 
 Default example:
 
@@ -148,6 +149,7 @@ linkRewriteRules: []
 site:
   title: "SK8R"
   description: "Published from an Obsidian vault using Quartz"
+  indexTitle: "Home"
 ```
 
 ## GitHub Pages Deployment (Primary)
