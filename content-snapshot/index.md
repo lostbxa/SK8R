@@ -17,8 +17,12 @@ Freedom, Fluidity, Fervour, these three pillars make up the lens through which w
 ## [[F8]]
 The events of your story will revolve around F8 (Fate) and the rolling mechanic behind it. Whenever a character in your story takes action that would result in an outcome that isn't immediately obvious you will do a [[F8 Check]] to determine the outcome. 
 |TODO: Add more details about [[rolling dice]] @due(2026-03-12)|
-
+## [[The World]]
+Figuring out the world should be your group's first priority. Sometimes this task will be taken care of by your GM but other times you will all come together as a group to decide what kind of world you would like to play in. 
 ## [[Character Creation]]
+Your character can be anyone you want it to be, your main goal with character creation is to come out the other side with a character that you will enjoy playing, and is interesting to you. 
+Before creating your character you should consider what kind of character you would like to play. A no-nonsense pack leader, a goofy sprinter, or a mastermind navigator. 
+Whether you play a character that embodies a well known archetype or an unconventional, never before seen combination of features, make sure whatever you build is something that you'll enjoy roleplaying, with abilities that you'll enjoy using. 
 ### [[Stamina & Moves]]
 To take action within the story you must spend stamina. 
 
